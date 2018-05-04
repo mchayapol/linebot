@@ -24,13 +24,26 @@ app = Flask(__name__)
 
 latest_image_path = ""
 
+channel_secret = os.getenv('LINE_CHANNEL_SECRET', None)
+channel_access_token = os.getenv('LINE_CHANNEL_ACCESS_TOKEN', None)
+
+if channel_secret is None:
+    print('Specify LINE_CHANNEL_SECRET as environment variable.')
+    sys.exit(1)
+if channel_access_token is None:
+    print('Specify LINE_CHANNEL_ACCESS_TOKEN as environment variable.')
+    sys.exit(1)
+
+line_bot_api = LineBotApi(channel_access_token)
+handler = WebhookHandler(channel_secret)
+
 # น้องรถถัง
 # line_bot_api = LineBotApi('Y2LM8a+jPmOBZRF2uiTeErE4rJAet1caN51/cjyTgGv2tsfCsJLhupNVAtaH5qaKEeloJPCuDqKpWLeoGaYUEqMpWKj5tQsnjz54crg6Ar88xdPhF9YTtV9pOnCwuKyGmOWXMnf/YqpxxX4Eo1o9EwdB04t89/1O/w1cDnyilFU=')
 # handler = WebhookHandler('e0c9c1415d73e1480aac32ca1b4e01e1')
 
 # อุ๋มอิ๋ม
-line_bot_api = LineBotApi('OOsNsQLfne//a6O7Nz2AQfwSaIzk2kNMy2A3qaGQjvYWXxRYqItTnI5GP76cl2QMfpjkFSlohX/rJoCKFQ7dc+w6MJz8qs12iVzQ6sWONBnLIiUFp0dlALsvLUSJ3uOGH4F9/avOWY/BouEI3aZ1rQdB04t89/1O/w1cDnyilFU=')
-handler = WebhookHandler('1fba0150b21dc471d820a51ea2c51098')
+# line_bot_api = LineBotApi('OOsNsQLfne//a6O7Nz2AQfwSaIzk2kNMy2A3qaGQjvYWXxRYqItTnI5GP76cl2QMfpjkFSlohX/rJoCKFQ7dc+w6MJz8qs12iVzQ6sWONBnLIiUFp0dlALsvLUSJ3uOGH4F9/avOWY/BouEI3aZ1rQdB04t89/1O/w1cDnyilFU=')
+# handler = WebhookHandler('1fba0150b21dc471d820a51ea2c51098')
 
 
 static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
