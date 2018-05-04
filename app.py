@@ -14,7 +14,8 @@ from linebot.exceptions import (
 )
 from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage,
-    ImageMessage, VideoMessage, AudioMessage
+    ImageMessage, VideoMessage, AudioMessage,
+    StickerMessage
 )
 
 import oil_price
@@ -23,8 +24,13 @@ app = Flask(__name__)
 
 latest_image_path = ""
 
-line_bot_api = LineBotApi('Y2LM8a+jPmOBZRF2uiTeErE4rJAet1caN51/cjyTgGv2tsfCsJLhupNVAtaH5qaKEeloJPCuDqKpWLeoGaYUEqMpWKj5tQsnjz54crg6Ar88xdPhF9YTtV9pOnCwuKyGmOWXMnf/YqpxxX4Eo1o9EwdB04t89/1O/w1cDnyilFU=')
-handler = WebhookHandler('e0c9c1415d73e1480aac32ca1b4e01e1')
+# น้องรถถัง
+# line_bot_api = LineBotApi('Y2LM8a+jPmOBZRF2uiTeErE4rJAet1caN51/cjyTgGv2tsfCsJLhupNVAtaH5qaKEeloJPCuDqKpWLeoGaYUEqMpWKj5tQsnjz54crg6Ar88xdPhF9YTtV9pOnCwuKyGmOWXMnf/YqpxxX4Eo1o9EwdB04t89/1O/w1cDnyilFU=')
+# handler = WebhookHandler('e0c9c1415d73e1480aac32ca1b4e01e1')
+
+# อุ๋มอิ๋ม
+line_bot_api = LineBotApi('OOsNsQLfne//a6O7Nz2AQfwSaIzk2kNMy2A3qaGQjvYWXxRYqItTnI5GP76cl2QMfpjkFSlohX/rJoCKFQ7dc+w6MJz8qs12iVzQ6sWONBnLIiUFp0dlALsvLUSJ3uOGH4F9/avOWY/BouEI3aZ1rQdB04t89/1O/w1cDnyilFU=')
+handler = WebhookHandler('1fba0150b21dc471d820a51ea2c51098')
 
 
 static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
@@ -60,15 +66,28 @@ def callback():
     # handle webhook body
     try:
         handler.handle(body, signature)
-    except InvalidSignatureError:
+    except InvalidSignatureError as e:
+        print("InvalidSignatureError:",e)
         abort(400)
 
     return 'OK'
+
+@handler.add(MessageEvent, message=StickerMessage)
+def handle_sticker_message(event):
+    # Handle webhook verification
+    print("Sticker Message")
+    if event.reply_token == "ffffffffffffffffffffffffffffffff":
+        return
+
 
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     global latest_image_path
+
+    # Handle webhook verification
+    if event.reply_token == "00000000000000000000000000000000":
+        return
 
     if event.message.text == 'ราคาน้ำมัน':
         l = oil_price.get_prices()
