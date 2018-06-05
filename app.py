@@ -14,6 +14,10 @@ from linebot.exceptions import (
     InvalidSignatureError, LineBotApiError
 )
 
+from dialog.intent.Registration import (
+    Registration
+)
+
 from linebot.models import (
     MessageEvent, TextMessage, 
     TextSendMessage, ImageSendMessage,
@@ -22,6 +26,12 @@ from linebot.models import (
     JoinEvent,
     SourceGroup
 )
+
+import firebase_admin
+from firebase_admin import (
+    credentials, db
+)
+import json
 
 import oil_price
 
@@ -41,6 +51,14 @@ if channel_access_token is None:
 
 line_bot_api = LineBotApi(channel_access_token)
 handler = WebhookHandler(channel_secret)
+
+cred = credentials.Certificate('study-room-firebase-service-account.json')
+default_app = firebase_admin.initialize_app(cred,
+{
+    'databaseURL': 'https://stellar-utility-840.firebaseio.com/'
+})
+
+conversation = {}
 
 # น้องรถถัง
 # line_bot_api = LineBotApi('Y2LM8a+jPmOBZRF2uiTeErE4rJAet1caN51/cjyTgGv2tsfCsJLhupNVAtaH5qaKEeloJPCuDqKpWLeoGaYUEqMpWKj5tQsnjz54crg6Ar88xdPhF9YTtV9pOnCwuKyGmOWXMnf/YqpxxX4Eo1o9EwdB04t89/1O/w1cDnyilFU=')
@@ -71,6 +89,11 @@ def default_action():
     for p in l:
         s += "%s %f บาท\n"%(p[0],p[1])
     return s
+
+def saveToFirebase(event):
+    ref = db.reference('/chatlog')
+    ref.push(json.loads(event.as_json_string()))
+        
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -149,7 +172,45 @@ def handle_message(event):
     if event.reply_token == "00000000000000000000000000000000":
         return
 
-    if event.message.text == 'ออกไปได้แล้ว':
+    saveToFirebase(event)
+
+    # Resume existing intent
+    print(conversation.keys())
+    uid = event.source.user_id
+    if uid in conversation:
+        intent = conversation[uid]
+        o = intent.handle(event.message.text)
+        line_bot_api.reply_message(
+            event.reply_token,
+            [
+                TextSendMessage(text=o)
+            ]
+        )
+        if intent.endIntent():
+            output = intent.getData()
+            print(output)
+            del conversation[uid]
+        return
+
+    if event.message.text == 'register':
+        uid = event.source.user_id
+        rego = None
+
+        if uid in conversation:
+            rego = conversation[uid]
+        else:
+            rego = Registration()
+            conversation[uid] = rego
+
+        o = rego.handle(event.message.text)
+        line_bot_api.reply_message(
+            event.reply_token,
+            [
+                TextSendMessage(text=o)
+            ]
+        )
+        
+    elif event.message.text == 'ออกไปได้แล้ว':
         if isinstance(event.source,SourceGroup):
             if event.source.user_id == 'U53199750dbac026a2bd87a094472ddf1':
                 line_bot_api.reply_message(
