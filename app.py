@@ -29,12 +29,26 @@ from linebot.models import (
 
 app = Flask(__name__)
 
-line_bot_api = LineBotApi('Y2LM8a+jPmOBZRF2uiTeErE4rJAet1caN51/cjyTgGv2tsfCsJLhupNVAtaH5qaKEeloJPCuDqKpWLeoGaYUEqMpWKj5tQsnjz54crg6Ar88xdPhF9YTtV9pOnCwuKyGmOWXMnf/YqpxxX4Eo1o9EwdB04t89/1O/w1cDnyilFU=')
-handler = WebhookHandler('e0c9c1415d73e1480aac32ca1b4e01e1')
+channel_secret = os.getenv('LINE_CHANNEL_SECRET', None)
+channel_access_token = os.getenv('LINE_CHANNEL_ACCESS_TOKEN', None)
+if channel_secret is None:
+    print('Specify LINE_CHANNEL_SECRET as environment variable.')
+    sys.exit(1)
+if channel_access_token is None:
+    print('Specify LINE_CHANNEL_ACCESS_TOKEN as environment variable.')
+    sys.exit(1)
+
+print('Channel Secret:', channel_secret)
+print('Channel Access Token:', channel_access_token)
+
+line_bot_api = LineBotApi(channel_access_token)
+handler = WebhookHandler(channel_secret)
 
 static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
 
 # function for create tmp dir for download content
+
+
 def make_static_tmp_dir():
     try:
         os.makedirs(static_tmp_path)
@@ -65,6 +79,9 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_text_message(event):
+    if event.reply_token == "00000000000000000000000000000000":
+        return "OK"
+
     text = event.message.text
 
     if text == 'profile':
@@ -170,6 +187,11 @@ def handle_location_message(event):
 
 @handler.add(MessageEvent, message=StickerMessage)
 def handle_sticker_message(event):
+    # Handle webhook verification
+    print("Sticker Message")
+    if event.reply_token == 'ffffffffffffffffffffffffffffffff':
+        return
+
     line_bot_api.reply_message(
         event.reply_token,
         StickerSendMessage(
