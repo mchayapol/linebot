@@ -5,3 +5,11 @@
 1. python app.py
 2. ngrok http 5000
 3. Verify webhook
+
+## Make into script
+
+export LINE_CHANNEL_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+export LINE_CHANNEL_ACCESS_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+export FLASK_APP=app.py
+export FLASK_DEBUG=1
+flask run
